@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:customer_loyalty/screens/auth/login_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     Timer(const Duration(seconds: 5), () async {
-      Get.off(PinLockScreen(), transition: Transition.zoom);
+      Get.off(MerchantLoginScreen(), transition: Transition.zoom);
     });
   }
 
