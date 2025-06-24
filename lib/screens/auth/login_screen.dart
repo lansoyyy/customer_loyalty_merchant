@@ -1,8 +1,10 @@
+import 'package:customer_loyalty/screens/home_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/button_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:customer_loyalty/widgets/textfield_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MerchantLoginScreen extends StatefulWidget {
   const MerchantLoginScreen({super.key});
@@ -33,7 +35,7 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
 
                 // Title
 
-                SizedBox(height: 20),
+                SizedBox(height: 25),
                 // Login Form
                 Container(
                   width: double.infinity,
@@ -70,7 +72,10 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
                           padding: const EdgeInsets.only(left: 20, right: 20),
                           child: ButtonWidget(
                             label: 'Login',
-                            onPressed: () {},
+                            onPressed: () {
+                              Get.off(HomeScreen(),
+                                  transition: Transition.zoom);
+                            },
                           ),
                         ),
                         SizedBox(height: 20),

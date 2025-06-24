@@ -42,10 +42,11 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 20),
               // Points Display
               Container(
                 width: double.infinity,
+                height: 150,
                 padding: EdgeInsets.all(25.0),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -60,58 +61,55 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextWidget(
-                          text: 'Total Points',
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontFamily: 'Medium',
-                        ),
-                        TouchableWidget(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return Dialog(
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 300,
-                                    decoration: BoxDecoration(color: ashGray),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: Icon(
-                            FontAwesomeIcons.qrcode,
-                            color: Colors.white,
-                            size: 25,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    TextWidget(
-                      text: '10,681',
-                      fontSize: 48,
-                      color: Colors.white,
-                      fontFamily: 'Bold',
-                      isBold: true,
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: TextWidget(
-                        text: '235 532 235 532',
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontFamily: 'Medium',
-                      ),
-                    ),
-                  ],
+                  children: [],
                 ),
+              ),
+              SizedBox(height: 10),
+              // Points Display
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 175,
+                    height: 150,
+                    padding: EdgeInsets.all(25.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xFF0033A0),
+                          Color.fromARGB(255, 26, 64, 177)
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [],
+                    ),
+                  ),
+                  Container(
+                    width: 175,
+                    height: 150,
+                    padding: EdgeInsets.all(25.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xFF0033A0),
+                          Color.fromARGB(255, 26, 64, 177)
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [],
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 20),
 
