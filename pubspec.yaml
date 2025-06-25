@@ -41,6 +41,8 @@ dependencies:
   font_awesome_flutter:
   flutter_spinkit:
   flutter_swipe_button:
+  quickalert:
+
 
 dev_dependencies:
   flutter_test:

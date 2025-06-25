@@ -1,135 +1,345 @@
+import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
+import 'package:customer_loyalty/widgets/amount.purchase_dialog.dart';
+import 'package:customer_loyalty/widgets/button_widget.dart';
+import 'package:customer_loyalty/widgets/divider_widget.dart';
 import 'package:customer_loyalty/widgets/drawer_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:customer_loyalty/widgets/touchable_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
+import 'package:quickalert/quickalert.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  // Constants for reusable values
+  static const _backgroundColor = Color(0xFF1C2526);
+  static const _cardGradientColors = [Color(0xFF0033A0), Color(0xFF1A40B1)];
+  static const _cardPadding = EdgeInsets.all(20.0);
+  static const _sectionSpacing = 15.0;
+  static const _cardRadius = 16.0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: DrawerWidget(),
-      appBar: AppBar(
-        backgroundColor: bayanihanBlue,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.settings,
+      drawer: const DrawerWidget(),
+      floatingActionButton: _buildFloatingActionButton(context),
+      appBar: _buildAppBar(),
+      backgroundColor: _backgroundColor,
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 12),
+            _buildTotalLoadCard(),
+            const SizedBox(height: _sectionSpacing),
+            _buildTopUpButton(),
+            const SizedBox(height: _sectionSpacing),
+            _buildAnalyticsSection(context),
+            const SizedBox(height: _sectionSpacing),
+            TextWidget(
+              text: 'Transactions',
+              fontSize: 20,
+              color: Colors.white,
+              fontFamily: 'Bold',
+              isBold: true,
+            ),
+            const SizedBox(height: 5),
+            _buildTransactionSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: bayanihanBlue,
+      foregroundColor: Colors.white,
+      title: TextWidget(
+        text: 'Dashboard',
+        fontSize: 20,
+        color: Colors.white,
+        fontFamily: 'Bold',
+      ),
+      centerTitle: true,
+      elevation: 4,
+    );
+  }
+
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () => _showBottomSheet(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+      backgroundColor: Colors.white,
+      elevation: 6,
+      child: Icon(
+        FontAwesomeIcons.add,
+        color: bayanihanBlue,
+        size: 28,
+      ),
+    );
+  }
+
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(_cardRadius)),
+      ),
+      backgroundColor: const Color(0xFF2C3E50),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildBottomSheetItem(
+                icon: FontAwesomeIcons.barcode,
+                text: 'Scan Loyalty Card',
+                context: context,
+              ),
+              DividerWidget(color: Colors.white.withOpacity(0.5)),
+              _buildBottomSheetItem(
+                icon: FontAwesomeIcons.qrcode,
+                text: 'Scan QR Code',
+                context: context,
+              ),
+              DividerWidget(color: Colors.white.withOpacity(0.5)),
+              _buildBottomSheetItem(
+                icon: FontAwesomeIcons.hashtag,
+                text: 'Input Card Number',
+                context: context,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomSheetItem(
+      {required IconData icon,
+      required String text,
+      required BuildContext context}) {
+    return TouchableWidget(
+      onTap: () async {
+        final result = await showDialog<String>(
+          context: context,
+          builder: (context) => const AmountPurchaseDialog(),
+        );
+
+        // Handle the returned value
+        if (result != null && context.mounted) {
+          // Optionally show a confirmation or process the amount
+
+          Get.to(PinLockScreen(), transition: Transition.zoom)!.whenComplete(
+            () async {
+              Navigator.pop(context);
+              // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+              // Dialog
+              QuickAlert.show(
+                  context: context,
+                  type: QuickAlertType.success,
+                  title: 'Transaction Completed!',
+                  text:
+                      '${(double.parse(result) * .10).toStringAsFixed(2)} pts is added to # 235 532 235 532',
+                  confirmBtnColor: bayanihanBlue,
+                  confirmBtnTextStyle:
+                      TextStyle(fontFamily: 'Medium', color: Colors.white));
+            },
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 16),
+            TextWidget(
+              text: text,
+              fontSize: 16,
+              color: Colors.white,
+              fontFamily: 'Medium',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTotalLoadCard() {
+    return Container(
+      width: double.infinity,
+      padding: _cardPadding,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: _cardGradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        boxShadow: [
+          BoxShadow(
+            color: _cardGradientColors[0].withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextWidget(
+                text: 'Total Load',
+                fontSize: 18,
+                color: Colors.white,
+                fontFamily: 'Medium',
+              ),
+              CircleAvatar(
+                minRadius: 18,
+                maxRadius: 18,
+                backgroundColor: Colors.white.withOpacity(0.9),
+              ),
+            ],
+          ),
+          TextWidget(
+            text: '10,681',
+            fontSize: 48,
+            color: Colors.white,
+            fontFamily: 'Bold',
+            isBold: true,
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: TextWidget(
+              text: 'Jollibee Food Corp',
+              fontSize: 14,
+              color: Colors.white70,
+              fontFamily: 'Medium',
             ),
           ),
         ],
-        title: TextWidget(
-          text: 'Dashboard',
-          fontSize: 18,
-          color: Colors.white,
-        ),
-        centerTitle: true,
       ),
-      backgroundColor:
-          Color(0xFF1C2526), // Dark background mimicking screenshot
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SafeArea(
+    );
+  }
+
+  Widget _buildTopUpButton() {
+    return ButtonWidget(
+      radius: _cardRadius,
+      color: Colors.white,
+      textColor: bayanihanBlue,
+      width: double.infinity,
+      label: 'Top-up',
+      onPressed: () {},
+      fontSize: 18,
+    );
+  }
+
+  Widget _buildAnalyticsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextWidget(
+          text: 'Summary',
+          fontSize: 20,
+          color: Colors.white,
+          fontFamily: 'Bold',
+          isBold: true,
+        ),
+        const SizedBox(height: 5),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildAnalyticsCard(
+              context,
+              icon: FontAwesomeIcons.users,
+              title: 'Total Customers',
+              value: '1,245',
+              gradientColors: [Colors.blue[700]!, Colors.blue[400]!],
+            ),
+            _buildAnalyticsCard(
+              context,
+              icon: FontAwesomeIcons.ticket,
+              title: 'Points Redeemed',
+              value: '25,430',
+              gradientColors: [Colors.red[600]!, Colors.red[400]!],
+            ),
+            _buildAnalyticsCard(
+              context,
+              icon: FontAwesomeIcons.gift,
+              title: 'Points\nGiven',
+              value: '32,150',
+              gradientColors: [Colors.green[600]!, Colors.green[400]!],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsCard(BuildContext context,
+      {required IconData icon,
+      required String title,
+      required String value,
+      required List<Color> gradientColors}) {
+    return Expanded(
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_cardRadius)),
+        child: Container(
+          margin: const EdgeInsets.all(3.0),
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(_cardRadius - 4),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
-
-              SizedBox(height: 20),
-              // Points Display
-              Container(
-                width: double.infinity,
-                height: 150,
-                padding: EdgeInsets.all(25.0),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF0033A0),
-                      Color.fromARGB(255, 26, 64, 177)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [],
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
-              // Points Display
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 175,
-                    height: 150,
-                    padding: EdgeInsets.all(25.0),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color(0xFF0033A0),
-                          Color.fromARGB(255, 26, 64, 177)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [],
-                    ),
-                  ),
-                  Container(
-                    width: 175,
-                    height: 150,
-                    padding: EdgeInsets.all(25.0),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color(0xFF0033A0),
-                          Color.fromARGB(255, 26, 64, 177)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-
-              // Transaction History
+              const SizedBox(height: 8),
               TextWidget(
-                text: 'History',
-                fontSize: 20,
+                text: title,
+                fontSize: 14,
+                fontFamily: 'Medium',
+                color: Colors.white,
+              ),
+              const SizedBox(height: 12),
+              TextWidget(
+                text: value,
+                fontSize: 24,
+                fontFamily: 'Bold',
                 color: Colors.white,
                 isBold: true,
-              ),
-              SizedBox(height: 10),
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildTransactionItem('Caramel Macchiato',
-                        'Oct 20, 10:00 am', '+120.22 pts', Colors.green),
-                    _buildTransactionItem('Chocolate Burst', 'Oct 20, 10:05 am',
-                        '+60.75 pts', Colors.green),
-                    _buildTransactionItem('Stawberry Tea', 'Oct 20, 10:10 am',
-                        '-680 pts', Colors.red),
-                  ],
-                ),
               ),
             ],
           ),
@@ -138,49 +348,79 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(
-      String title, String date, String amount, Color color) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+  Widget _buildTransactionSection() {
+    return Expanded(
+      child: ListView(
         children: [
-          Container(
-            padding: EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: Color(0xFF2C3E50),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              FontAwesomeIcons.gift,
-              color: Colors.white70,
-              size: 20,
-            ),
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextWidget(
-                  text: title,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-                TextWidget(
-                  text: date,
-                  fontSize: 12,
-                  color: Colors.white70,
-                ),
-              ],
-            ),
-          ),
-          TextWidget(
-            text: amount,
-            fontSize: 16,
-            color: color,
-            isBold: true,
+          ListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:00 am',
+                  '+120.22 pts', Colors.green[600]!),
+              _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:05 am',
+                  '+60.75 pts', Colors.green[600]!),
+              _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:10 am',
+                  '-680 pts', Colors.red[600]!),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionItem(
+      String title, String date, String amount, Color color) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: const Color(0xFF2C3E50),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                FontAwesomeIcons.gift,
+                color: Colors.white70,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextWidget(
+                    text: title,
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontFamily: 'Medium',
+                  ),
+                  TextWidget(
+                    text: date,
+                    fontSize: 12,
+                    color: Colors.white70,
+                    fontFamily: 'Regular',
+                  ),
+                ],
+              ),
+            ),
+            TextWidget(
+              text: amount,
+              fontSize: 16,
+              color: color,
+              fontFamily: 'Bold',
+              isBold: true,
+            ),
+          ],
+        ),
       ),
     );
   }

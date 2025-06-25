@@ -3,6 +3,7 @@ import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:customer_loyalty/widgets/touchable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class PinLockScreen extends StatefulWidget {
   @override
@@ -19,10 +20,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
         _pin += number;
         if (_pin.length == _pinLength) {
           // Navigate to success screen after 6 digits
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
+          Get.back(result: _pin);
         }
       });
     }
