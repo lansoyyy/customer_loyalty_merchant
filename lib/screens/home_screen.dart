@@ -1,4 +1,5 @@
 import 'package:customer_loyalty/utils/colors.dart';
+import 'package:customer_loyalty/widgets/drawer_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:customer_loyalty/widgets/touchable_widget.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,25 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: DrawerWidget(),
+      appBar: AppBar(
+        backgroundColor: bayanihanBlue,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.settings,
+            ),
+          ),
+        ],
+        title: TextWidget(
+          text: 'Dashboard',
+          fontSize: 18,
+          color: Colors.white,
+        ),
+        centerTitle: true,
+      ),
       backgroundColor:
           Color(0xFF1C2526), // Dark background mimicking screenshot
       body: Padding(
@@ -20,28 +40,6 @@ class HomeScreen extends StatelessWidget {
             children: [
               // Greeting
 
-              SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  TextWidget(
-                    text: 'Dashboard',
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontFamily: 'Bold',
-                  ),
-                  CircleAvatar(
-                    minRadius: 20,
-                    maxRadius: 20,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      FontAwesomeIcons.user,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
               SizedBox(height: 20),
               // Points Display
               Container(
