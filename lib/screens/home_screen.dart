@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   // Constants for reusable values
-  static const _backgroundColor = Color(0xFF1C2526);
+
   static const _cardGradientColors = [Color(0xFF0033A0), Color(0xFF1A40B1)];
   static const _cardPadding = EdgeInsets.all(20.0);
   static const _sectionSpacing = 15.0;
@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
       drawer: const DrawerWidget(),
       floatingActionButton: _buildFloatingActionButton(context),
       appBar: _buildAppBar(),
-      backgroundColor: _backgroundColor,
+      backgroundColor: backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(

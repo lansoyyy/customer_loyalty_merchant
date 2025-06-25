@@ -1,8 +1,11 @@
 import 'package:customer_loyalty/screens/auth/login_screen.dart';
+import 'package:customer_loyalty/screens/history_screen.dart';
 import 'package:customer_loyalty/widgets/divider_widget.dart';
 import 'package:customer_loyalty/widgets/logout_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
+import 'package:customer_loyalty/widgets/touchable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../screens/home_screen.dart';
 
@@ -51,32 +54,12 @@ class DrawerWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              DividerWidget(),
-              ListTile(
-                leading: const Icon(
-                  Icons.dashboard_outlined,
-                  color: Colors.white,
-                  size: 26,
-                ),
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    (route) => false,
-                  );
-                },
-                title: TextWidget(
-                  text: 'Dashboard',
-                  fontSize: 16,
-                  fontFamily: 'Medium',
-                  color: Colors.white,
-                ),
-                hoverColor: Colors.white10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
+              navBarItem(Icons.dashboard_outlined, 'Dashboard', () {
+                Get.off(HomeScreen(), transition: Transition.zoom);
+              }),
+              navBarItem(Icons.history, 'History', () {
+                Get.off(HistoryScreen(), transition: Transition.zoom);
+              }),
               const Spacer(),
               DividerWidget(),
               const SizedBox(height: 12),
@@ -104,6 +87,45 @@ class DrawerWidget extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget navBarItem(
+    IconData icon,
+    String title,
+    Function onTap,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: TouchableWidget(
+        onTap: () {
+          onTap();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          height: 50,
+          child: ListTile(
+            trailing: Icon(
+              icon,
+              color: Colors.white,
+              size: 26,
+            ),
+            title: TextWidget(
+              text: title,
+              fontSize: 16,
+              fontFamily: 'Medium',
+              color: Colors.white,
+            ),
+            hoverColor: Colors.white10,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
       ),

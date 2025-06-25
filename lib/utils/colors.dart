@@ -11,6 +11,7 @@ const Color charcoalGray = Color(0xFF424242);
 const Color ashGray = Color(0xFFB0BEC5);
 const Color jetBlack = Color(0xFF000000);
 const Color plainWhite = Color.fromARGB(255, 255, 255, 255);
+const backgroundColor = Color(0xFF1C2526);
 TimeOfDay parseTime(String timeString) {
   List<String> parts = timeString.split(':');
   return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
