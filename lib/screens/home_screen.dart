@@ -1,3 +1,4 @@
+import 'package:customer_loyalty/screens/history_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/amount.purchase_dialog.dart';
@@ -40,12 +41,29 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: _sectionSpacing),
             _buildAnalyticsSection(context),
             const SizedBox(height: _sectionSpacing),
-            TextWidget(
-              text: 'Transactions',
-              fontSize: 20,
-              color: Colors.white,
-              fontFamily: 'Bold',
-              isBold: true,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextWidget(
+                  text: 'Transactions ',
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontFamily: 'Bold',
+                  isBold: true,
+                ),
+                TextButton(
+                  onPressed: () {
+                    Get.to(HistoryScreen(), transition: Transition.zoom);
+                  },
+                  child: TextWidget(
+                    text: 'See All',
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontFamily: 'Bold',
+                    isBold: true,
+                  ),
+                )
+              ],
             ),
             const SizedBox(height: 5),
             _buildTransactionSection(),
@@ -351,19 +369,15 @@ class HomeScreen extends StatelessWidget {
   Widget _buildTransactionSection() {
     return Expanded(
       child: ListView(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         children: [
-          ListView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:00 am',
-                  '+120.22 pts', Colors.green[600]!),
-              _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:05 am',
-                  '+60.75 pts', Colors.green[600]!),
-              _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:10 am',
-                  '-680 pts', Colors.red[600]!),
-            ],
-          ),
+          _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:00 am',
+              '+120.22 pts', Colors.green[600]!),
+          _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:05 am',
+              '+60.75 pts', Colors.green[600]!),
+          _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:10 am',
+              '-680 pts', Colors.red[600]!),
         ],
       ),
     );
