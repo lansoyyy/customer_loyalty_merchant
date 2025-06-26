@@ -1,4 +1,5 @@
 import 'package:customer_loyalty/screens/history_screen.dart';
+import 'package:customer_loyalty/screens/load.user_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:customer_loyalty/screens/reload_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
@@ -32,43 +33,47 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 12),
-            _buildTotalLoadCard(),
-            const SizedBox(height: _sectionSpacing),
-            _buildTopUpButton(context),
-            const SizedBox(height: _sectionSpacing),
-            _buildAnalyticsSection(context),
-            const SizedBox(height: _sectionSpacing),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextWidget(
-                  text: 'Transactions ',
-                  fontSize: 20,
-                  color: Colors.white,
-                  fontFamily: 'Bold',
-                  isBold: true,
-                ),
-                TextButton(
-                  onPressed: () {
-                    Get.to(HistoryScreen(), transition: Transition.zoom);
-                  },
-                  child: TextWidget(
-                    text: 'See All',
-                    fontSize: 16,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              _buildTotalLoadCard(),
+              const SizedBox(height: _sectionSpacing),
+              _buildTopUpButton(context),
+              const SizedBox(height: _sectionSpacing),
+              _buildLoadUserButton(context),
+              const SizedBox(height: _sectionSpacing),
+              _buildAnalyticsSection(context),
+              const SizedBox(height: _sectionSpacing),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextWidget(
+                    text: 'Transactions ',
+                    fontSize: 20,
                     color: Colors.white,
                     fontFamily: 'Bold',
                     isBold: true,
                   ),
-                )
-              ],
-            ),
-            const SizedBox(height: 5),
-            _buildTransactionSection(),
-          ],
+                  TextButton(
+                    onPressed: () {
+                      Get.to(HistoryScreen(), transition: Transition.zoom);
+                    },
+                    child: TextWidget(
+                      text: 'See All',
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontFamily: 'Bold',
+                      isBold: true,
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 5),
+              _buildTransactionSection(),
+            ],
+          ),
         ),
       ),
     );
@@ -91,7 +96,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
-      onPressed: () => _showBottomSheet(context),
+      onPressed: () => _showBottomSheet(context, false),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
       backgroundColor: Colors.white,
       elevation: 6,
@@ -103,7 +108,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showBottomSheet(BuildContext context) {
+  void _showBottomSheet(BuildContext context, bool isUserLoad) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -121,18 +126,21 @@ class HomeScreen extends StatelessWidget {
                 icon: FontAwesomeIcons.barcode,
                 text: 'Scan Loyalty Card',
                 context: context,
+                isLoadUser: isUserLoad,
               ),
               DividerWidget(color: Colors.white.withOpacity(0.5)),
               _buildBottomSheetItem(
                 icon: FontAwesomeIcons.qrcode,
                 text: 'Scan QR Code',
                 context: context,
+                isLoadUser: isUserLoad,
               ),
               DividerWidget(color: Colors.white.withOpacity(0.5)),
               _buildBottomSheetItem(
                 icon: FontAwesomeIcons.hashtag,
                 text: 'Input Card Number',
                 context: context,
+                isLoadUser: isUserLoad,
               ),
             ],
           ),
@@ -144,35 +152,52 @@ class HomeScreen extends StatelessWidget {
   Widget _buildBottomSheetItem(
       {required IconData icon,
       required String text,
-      required BuildContext context}) {
+      required BuildContext context,
+      required bool isLoadUser}) {
     return TouchableWidget(
       onTap: () async {
-        final result = await showDialog<String>(
-          context: context,
-          builder: (context) => const AmountPurchaseDialog(),
-        );
-
-        // Handle the returned value
-        if (result != null && context.mounted) {
-          // Optionally show a confirmation or process the amount
-
+        if (isLoadUser) {
           Get.to(PinLockScreen(), transition: Transition.zoom)!.whenComplete(
             () async {
               Navigator.pop(context);
               // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
 
               // Dialog
-              QuickAlert.show(
-                  context: context,
-                  type: QuickAlertType.success,
-                  title: 'Transaction Completed!',
-                  text:
-                      '${(double.parse(result) * .10).toStringAsFixed(2)} pts is added to # 235 532 235 532',
-                  confirmBtnColor: bayanihanBlue,
-                  confirmBtnTextStyle:
-                      TextStyle(fontFamily: 'Medium', color: Colors.white));
+              Get.to(
+                  LoadUserCardScreen(
+                    userId: '12345',
+                  ),
+                  transition: Transition.zoom);
             },
           );
+        } else {
+          final result = await showDialog<String>(
+            context: context,
+            builder: (context) => const AmountPurchaseDialog(),
+          );
+
+          // Handle the returned value
+          if (result != null && context.mounted) {
+            // Optionally show a confirmation or process the amount
+
+            Get.to(PinLockScreen(), transition: Transition.zoom)!.whenComplete(
+              () async {
+                Navigator.pop(context);
+                // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+                // Dialog
+                QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.success,
+                    title: 'Transaction Completed!',
+                    text:
+                        '${(double.parse(result) * .10).toStringAsFixed(2)} pts is added to # 235 532 235 532',
+                    confirmBtnColor: bayanihanBlue,
+                    confirmBtnTextStyle:
+                        TextStyle(fontFamily: 'Medium', color: Colors.white));
+              },
+            );
+          }
         }
       },
       child: Padding(
@@ -269,6 +294,18 @@ class HomeScreen extends StatelessWidget {
           },
         );
       },
+      fontSize: 18,
+    );
+  }
+
+  Widget _buildLoadUserButton(BuildContext context) {
+    return ButtonWidget(
+      radius: _cardRadius,
+      color: Colors.white,
+      textColor: bayanihanBlue,
+      width: double.infinity,
+      label: 'Load User',
+      onPressed: () => _showBottomSheet(context, true),
       fontSize: 18,
     );
   }
@@ -377,10 +414,9 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildTransactionSection() {
-    return Expanded(
+    return SizedBox(
+      height: 300,
       child: ListView(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
         children: [
           _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:00 am',
               '+120.22 pts', Colors.green[600]!),

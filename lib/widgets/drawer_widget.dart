@@ -1,6 +1,7 @@
 import 'package:customer_loyalty/screens/auth/login_screen.dart';
 import 'package:customer_loyalty/screens/banner_screen.dart';
 import 'package:customer_loyalty/screens/history_screen.dart';
+import 'package:customer_loyalty/screens/load.user_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:customer_loyalty/screens/reload_screen.dart';
 import 'package:customer_loyalty/screens/settings_screen.dart';
@@ -9,6 +10,7 @@ import 'package:customer_loyalty/widgets/logout_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:customer_loyalty/widgets/touchable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
 import '../screens/home_screen.dart';
@@ -61,18 +63,7 @@ class DrawerWidget extends StatelessWidget {
               navBarItem(Icons.dashboard_outlined, 'Dashboard', () {
                 Get.off(HomeScreen(), transition: Transition.zoom);
               }),
-              navBarItem(Icons.bookmark_border_outlined, 'Banners', () {
-                Get.to(PinLockScreen(), transition: Transition.zoom)!
-                    .whenComplete(
-                  () async {
-                    Get.off(BannersScreen(), transition: Transition.zoom);
-                    // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
-
-                    // Dialog
-                  },
-                );
-              }),
-              navBarItem(Icons.cached, 'Reload', () {
+              navBarItem(Icons.cached, 'Reload Points', () {
                 Get.to(PinLockScreen(), transition: Transition.zoom)!
                     .whenComplete(
                   () async {
@@ -83,8 +74,22 @@ class DrawerWidget extends StatelessWidget {
                   },
                 );
               }),
+              navBarItem(Icons.person_add_alt_1_outlined, 'Load User', () {
+                _showBottomSheet(context, true);
+              }),
               navBarItem(Icons.history, 'History', () {
                 Get.off(HistoryScreen(), transition: Transition.zoom);
+              }),
+              navBarItem(Icons.bookmark_border_outlined, 'Banners', () {
+                Get.to(PinLockScreen(), transition: Transition.zoom)!
+                    .whenComplete(
+                  () async {
+                    Get.off(BannersScreen(), transition: Transition.zoom);
+                    // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+                    // Dialog
+                  },
+                );
               }),
               navBarItem(Icons.settings, 'Settings', () {
                 Get.to(PinLockScreen(), transition: Transition.zoom)!
@@ -164,6 +169,86 @@ class DrawerWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showBottomSheet(BuildContext context, bool isUserLoad) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      backgroundColor: const Color(0xFF2C3E50),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildBottomSheetItem(
+                icon: FontAwesomeIcons.barcode,
+                text: 'Scan Loyalty Card',
+                context: context,
+                isLoadUser: isUserLoad,
+              ),
+              DividerWidget(color: Colors.white.withOpacity(0.5)),
+              _buildBottomSheetItem(
+                icon: FontAwesomeIcons.qrcode,
+                text: 'Scan QR Code',
+                context: context,
+                isLoadUser: isUserLoad,
+              ),
+              DividerWidget(color: Colors.white.withOpacity(0.5)),
+              _buildBottomSheetItem(
+                icon: FontAwesomeIcons.hashtag,
+                text: 'Input Card Number',
+                context: context,
+                isLoadUser: isUserLoad,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomSheetItem(
+      {required IconData icon,
+      required String text,
+      required BuildContext context,
+      required bool isLoadUser}) {
+    return TouchableWidget(
+      onTap: () async {
+        Get.to(PinLockScreen(), transition: Transition.zoom)!.whenComplete(
+          () async {
+            Navigator.pop(context);
+            // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+            // Dialog
+            Get.to(
+                LoadUserCardScreen(
+                  userId: '12345',
+                ),
+                transition: Transition.zoom);
+          },
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 16),
+            TextWidget(
+              text: text,
+              fontSize: 16,
+              color: Colors.white,
+              fontFamily: 'Medium',
+            ),
+          ],
         ),
       ),
     );
