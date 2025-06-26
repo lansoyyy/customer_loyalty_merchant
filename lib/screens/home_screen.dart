@@ -1,5 +1,6 @@
 import 'package:customer_loyalty/screens/history_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
+import 'package:customer_loyalty/screens/reload_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/amount.purchase_dialog.dart';
 import 'package:customer_loyalty/widgets/button_widget.dart';
@@ -37,7 +38,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildTotalLoadCard(),
             const SizedBox(height: _sectionSpacing),
-            _buildTopUpButton(),
+            _buildTopUpButton(context),
             const SizedBox(height: _sectionSpacing),
             _buildAnalyticsSection(context),
             const SizedBox(height: _sectionSpacing),
@@ -251,14 +252,23 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopUpButton() {
+  Widget _buildTopUpButton(BuildContext context) {
     return ButtonWidget(
       radius: _cardRadius,
       color: Colors.white,
       textColor: bayanihanBlue,
       width: double.infinity,
-      label: 'Top-up',
-      onPressed: () {},
+      label: 'Reload',
+      onPressed: () {
+        Get.to(PinLockScreen(), transition: Transition.zoom)!.whenComplete(
+          () async {
+            Get.off(ReloadScreen(), transition: Transition.zoom);
+            // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+            // Dialog
+          },
+        );
+      },
       fontSize: 18,
     );
   }
