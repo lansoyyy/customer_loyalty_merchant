@@ -1,4 +1,5 @@
 import 'package:customer_loyalty/screens/auth/login_screen.dart';
+import 'package:customer_loyalty/screens/banner_screen.dart';
 import 'package:customer_loyalty/screens/history_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:customer_loyalty/screens/reload_screen.dart';
@@ -60,14 +61,25 @@ class DrawerWidget extends StatelessWidget {
               navBarItem(Icons.dashboard_outlined, 'Dashboard', () {
                 Get.off(HomeScreen(), transition: Transition.zoom);
               }),
-              navBarItem(Icons.history, 'History', () {
-                Get.off(HistoryScreen(), transition: Transition.zoom);
-              }),
               navBarItem(Icons.cached, 'Reload', () {
                 Get.to(PinLockScreen(), transition: Transition.zoom)!
                     .whenComplete(
                   () async {
                     Get.off(ReloadScreen(), transition: Transition.zoom);
+                    // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+                    // Dialog
+                  },
+                );
+              }),
+              navBarItem(Icons.history, 'History', () {
+                Get.off(HistoryScreen(), transition: Transition.zoom);
+              }),
+              navBarItem(Icons.bookmark, 'Banners', () {
+                Get.to(PinLockScreen(), transition: Transition.zoom)!
+                    .whenComplete(
+                  () async {
+                    Get.off(BannersScreen(), transition: Transition.zoom);
                     // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
 
                     // Dialog
