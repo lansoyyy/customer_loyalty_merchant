@@ -90,6 +90,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Card(
+              color: Colors.white,
               elevation: 4,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -102,7 +103,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       text: 'Filter Transactions',
                       fontSize: 18,
                       fontFamily: 'Bold',
-                      color: bayanihanBlue,
+                      color: Colors.black,
                       isBold: true,
                     ),
                     const SizedBox(height: 12),
@@ -223,6 +224,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Card(
               elevation: 4,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               child: Padding(
@@ -311,19 +313,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
         transaction['type'] == 'Earned' ? Colors.green[600]! : Colors.red[600]!;
     return Card(
       elevation: 3,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              bayanihanBlue.withOpacity(0.05),
-            ],
-          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -332,14 +327,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: bayanihanBlue.withOpacity(0.1),
+                  color: bayanihanBlue,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   transaction['type'] == 'Earned'
                       ? FontAwesomeIcons.gift
                       : FontAwesomeIcons.ticket,
-                  color: bayanihanBlue,
+                  color: Colors.white,
                   size: 20,
                 ),
               ),

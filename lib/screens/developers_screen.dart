@@ -45,15 +45,8 @@ class DevelopersScreen extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: Colors.black26.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(15.0),
@@ -72,7 +65,7 @@ class DevelopersScreen extends StatelessWidget {
                     text: teamName,
                     fontSize: 28,
                     fontFamily: 'Bold',
-                    color: Colors.white,
+                    color: bayanihanBlue,
                     isBold: true,
                   ),
                   const SizedBox(height: 8),
@@ -80,7 +73,7 @@ class DevelopersScreen extends StatelessWidget {
                     text: 'The Team Behind Discover Philippines',
                     fontSize: 16,
                     fontFamily: 'Regular',
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ],
               ),
@@ -92,7 +85,7 @@ class DevelopersScreen extends StatelessWidget {
                   'Algo Vision is a passionate team dedicated to creating innovative solutions for seamless user experiences. Based in Cagayan De Oro City, we strive to empower communities through technology.',
               fontSize: 14,
               fontFamily: 'Regular',
-              color: Colors.white,
+              color: Colors.black,
               align: TextAlign.center,
               maxLines: 50,
             ),

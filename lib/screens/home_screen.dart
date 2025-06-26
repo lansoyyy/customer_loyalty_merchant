@@ -19,7 +19,10 @@ class HomeScreen extends StatelessWidget {
 
   // Constants for reusable values
 
-  static const _cardGradientColors = [Color(0xFF0033A0), Color(0xFF1A40B1)];
+  static const _cardGradientColors = [
+    Color(0xFF1877F2),
+    Color.fromARGB(255, 10, 99, 216)
+  ];
   static const _cardPadding = EdgeInsets.all(20.0);
   static const _sectionSpacing = 15.0;
   static const _cardRadius = 16.0;
@@ -52,7 +55,7 @@ class HomeScreen extends StatelessWidget {
                   TextWidget(
                     text: 'Transactions ',
                     fontSize: 20,
-                    color: Colors.white,
+                    color: Colors.black,
                     fontFamily: 'Bold',
                     isBold: true,
                   ),
@@ -63,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                     child: TextWidget(
                       text: 'See All',
                       fontSize: 16,
-                      color: Colors.white,
+                      color: Colors.black,
                       fontFamily: 'Bold',
                       isBold: true,
                     ),
@@ -114,7 +117,7 @@ class HomeScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(_cardRadius)),
       ),
-      backgroundColor: const Color(0xFF2C3E50),
+      backgroundColor: const Color.fromARGB(255, 4, 89, 199),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(24.0),
@@ -317,7 +320,7 @@ class HomeScreen extends StatelessWidget {
         TextWidget(
           text: 'Summary',
           fontSize: 20,
-          color: Colors.white,
+          color: Colors.black,
           fontFamily: 'Bold',
           isBold: true,
         ),
@@ -418,23 +421,28 @@ class HomeScreen extends StatelessWidget {
       height: 300,
       child: ListView(
         children: [
-          _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:00 am',
-              '+120.22 pts', Colors.green[600]!),
-          _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:05 am',
-              '+60.75 pts', Colors.green[600]!),
-          _buildTransactionItem('# 235 532 235 532', 'Oct 20, 10:10 am',
-              '-680 pts', Colors.red[600]!),
+          _buildTransactionItem(
+            '# 235 532 235 532',
+            'Oct 20, 10:00 am',
+            '+120.22 pts',
+          ),
+          _buildTransactionItem(
+              '# 235 532 235 532', 'Oct 20, 10:05 am', '+60.75 pts'),
+          _buildTransactionItem(
+            '# 235 532 235 532',
+            'Oct 20, 10:10 am',
+            '-680 pts',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionItem(
-      String title, String date, String amount, Color color) {
+  Widget _buildTransactionItem(String title, String date, String amount) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: const Color(0xFF2C3E50),
+      color: bayanihanBlue,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -448,7 +456,7 @@ class HomeScreen extends StatelessWidget {
               ),
               child: const Icon(
                 FontAwesomeIcons.gift,
-                color: Colors.white70,
+                color: Colors.white,
                 size: 20,
               ),
             ),
@@ -475,7 +483,7 @@ class HomeScreen extends StatelessWidget {
             TextWidget(
               text: amount,
               fontSize: 16,
-              color: color,
+              color: Colors.white,
               fontFamily: 'Bold',
               isBold: true,
             ),

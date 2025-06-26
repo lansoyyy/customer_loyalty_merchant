@@ -172,7 +172,7 @@ class _ReloadScreenState extends State<ReloadScreen> {
               text: 'Reload Amount',
               fontSize: 18,
               fontFamily: 'Bold',
-              color: Colors.white, // Changed to bayanihanBlue for consistency
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 12),

@@ -30,8 +30,8 @@ class DrawerWidget extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1C2526),
-            Color(0xFF2A3B3C),
+            Color.fromARGB(255, 3, 69, 156),
+            bayanihanBlue,
           ],
         ),
       ),
@@ -43,24 +43,13 @@ class DrawerWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          height: 100,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextWidget(
-                        text: 'Jollibee',
-                        fontSize: 20,
-                        fontFamily: 'Bold',
-                        color: Colors.white,
-                      ),
-                    ],
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 100,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -131,14 +120,14 @@ class DrawerWidget extends StatelessWidget {
                       child: ListTile(
                         trailing: Icon(
                           Icons.logout_rounded,
-                          color: festiveRed,
+                          color: Colors.white,
                           size: 26,
                         ),
                         title: TextWidget(
                           text: 'Logout',
                           fontSize: 16,
                           fontFamily: 'Medium',
-                          color: festiveRed,
+                          color: Colors.white,
                         ),
                         hoverColor: Colors.white10,
                         shape: RoundedRectangleBorder(
@@ -201,7 +190,7 @@ class DrawerWidget extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      backgroundColor: const Color(0xFF2C3E50),
+      backgroundColor: const Color.fromARGB(255, 4, 89, 199),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(24.0),

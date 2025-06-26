@@ -232,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: 'Points Percentage per Transaction',
               fontSize: 16,
               fontFamily: 'Bold',
-              color: Colors.white, // Changed to bayanihanBlue for visibility
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 8),
@@ -300,8 +300,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: 'Update Logo',
               fontSize: 16,
               fontFamily: 'Bold',
-              color: Colors
-                  .white, // Changed to bayanihanBlue for visibility// Changed to bayanihanBlue for visibility
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 8),
@@ -367,8 +366,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: 'Update Name',
               fontSize: 16,
               fontFamily: 'Bold',
-              color: Colors
-                  .white, // Changed to bayanihanBlue for visibility/ Changed to bayanihanBlue for visibility
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 8),
@@ -423,7 +421,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: 'Change PIN',
               fontSize: 16,
               fontFamily: 'Bold',
-              color: Colors.white, // Changed to bayanihanBlue for visibility
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 8),
@@ -482,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: 'Edit Details',
               fontSize: 16,
               fontFamily: 'Bold',
-              color: Colors.white, // Changed to bayanihanBlue for visibility
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 8),

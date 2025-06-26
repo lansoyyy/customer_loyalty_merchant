@@ -34,8 +34,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
               TextWidget(
                 text: 'Privacy Policy',
                 fontSize: 32,
-                color: Colors.white,
-                fontFamily: 'Bold',
+                color: Colors.black,
+                fontFamily: 'Medium',
                 isBold: true,
               ),
               TextWidget(
@@ -117,7 +117,8 @@ Email: algovision123@gmail.com
                 ''',
                 fontSize: 16,
                 maxLines: 200,
-                color: Colors.white,
+                color: Colors.black,
+                fontFamily: 'Regular',
               ),
             ],
           ),

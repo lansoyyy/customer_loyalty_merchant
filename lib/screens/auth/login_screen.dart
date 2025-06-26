@@ -19,7 +19,7 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: charcoalGray,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -30,6 +30,7 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
                 Image.asset(
                   'assets/images/logo.png',
                   height: 200,
+                  color: bayanihanBlue,
                 ),
                 // Greeting with Date/Time
 
@@ -40,7 +41,7 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.black26,
+                    color: bayanihanBlue,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Padding(
@@ -71,6 +72,8 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 20, right: 20),
                           child: ButtonWidget(
+                            color: Colors.white,
+                            textColor: bayanihanBlue,
                             label: 'Login',
                             onPressed: () {
                               Get.off(HomeScreen(),

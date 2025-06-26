@@ -61,7 +61,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1C2526), // Dark background
+      backgroundColor: backgroundColor, // Dark background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -70,7 +70,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
             TextWidget(
               text: "Enter your account's PIN number",
               fontSize: 16,
-              color: Colors.white70,
+              color: Colors.black,
               align: TextAlign.center,
             ),
             const SizedBox(height: 20),

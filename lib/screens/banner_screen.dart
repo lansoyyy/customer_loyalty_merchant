@@ -262,7 +262,7 @@ class _BannersScreenState extends State<BannersScreen> {
               text: 'Current Banners',
               fontSize: 16,
               fontFamily: 'Bold',
-              color: Colors.white,
+              color: Colors.black,
               isBold: true,
             ),
             const SizedBox(height: 8),
