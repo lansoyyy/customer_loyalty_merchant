@@ -49,7 +49,7 @@ class DrawerWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     TextWidget(
-                      text: 'Kaffi Cafe',
+                      text: 'Jollibee',
                       fontSize: 20,
                       fontFamily: 'Bold',
                       color: Colors.white,
@@ -60,6 +60,17 @@ class DrawerWidget extends StatelessWidget {
               const SizedBox(height: 24),
               navBarItem(Icons.dashboard_outlined, 'Dashboard', () {
                 Get.off(HomeScreen(), transition: Transition.zoom);
+              }),
+              navBarItem(Icons.bookmark_border_outlined, 'Banners', () {
+                Get.to(PinLockScreen(), transition: Transition.zoom)!
+                    .whenComplete(
+                  () async {
+                    Get.off(BannersScreen(), transition: Transition.zoom);
+                    // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
+
+                    // Dialog
+                  },
+                );
               }),
               navBarItem(Icons.cached, 'Reload', () {
                 Get.to(PinLockScreen(), transition: Transition.zoom)!
@@ -74,17 +85,6 @@ class DrawerWidget extends StatelessWidget {
               }),
               navBarItem(Icons.history, 'History', () {
                 Get.off(HistoryScreen(), transition: Transition.zoom);
-              }),
-              navBarItem(Icons.bookmark, 'Banners', () {
-                Get.to(PinLockScreen(), transition: Transition.zoom)!
-                    .whenComplete(
-                  () async {
-                    Get.off(BannersScreen(), transition: Transition.zoom);
-                    // Logic of RFID Scanning/QR Code Scanning/Card ID Input in here
-
-                    // Dialog
-                  },
-                );
               }),
               navBarItem(Icons.settings, 'Settings', () {
                 Get.to(PinLockScreen(), transition: Transition.zoom)!

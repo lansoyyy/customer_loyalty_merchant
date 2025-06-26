@@ -177,6 +177,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         centerTitle: true,
         elevation: 4,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: Colors.white,
+                  title: TextWidget(
+                    text: 'About Settings',
+                    fontSize: 18,
+                    fontFamily: 'Bold',
+                    color: bayanihanBlue,
+                    isBold: true,
+                  ),
+                  content: TextWidget(
+                    text:
+                        'Settings allow you to configure the points percentage per transaction, update your business logo, name, PIN, and other details. These changes will be reflected in the user\'s application.',
+                    fontSize: 16,
+                    fontFamily: 'Regular',
+                    color: Colors.black87,
+                    maxLines: 50,
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: TextWidget(
+                        text: 'Close',
+                        fontSize: 14,
+                        fontFamily: 'Medium',
+                        color: bayanihanBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.info_outline,
+            ),
+          ),
+        ],
       ),
       backgroundColor: backgroundColor,
       body: SingleChildScrollView(

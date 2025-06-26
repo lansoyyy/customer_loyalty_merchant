@@ -168,6 +168,49 @@ class _BannersScreenState extends State<BannersScreen> {
         ),
         centerTitle: true,
         elevation: 4,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: Colors.white,
+                  title: TextWidget(
+                    text: 'About Banners',
+                    fontSize: 18,
+                    fontFamily: 'Bold',
+                    color: bayanihanBlue,
+                    isBold: true,
+                  ),
+                  content: TextWidget(
+                    maxLines: 50,
+                    text:
+                        'Banners uploaded here will be displayed in the user\'s application to showcase promotions, events, or other important announcements.',
+                    fontSize: 16,
+                    fontFamily: 'Regular',
+                    color: Colors.black87,
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: TextWidget(
+                        text: 'Close',
+                        fontSize: 14,
+                        fontFamily: 'Medium',
+                        color: bayanihanBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.info_outline,
+            ),
+          ),
+        ],
       ),
       backgroundColor: backgroundColor,
       body: Padding(
