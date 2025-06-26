@@ -42,6 +42,7 @@ dependencies:
   flutter_spinkit:
   flutter_swipe_button:
   quickalert:
+  image_picker: ^1.1.2
 
 
 dev_dependencies:
