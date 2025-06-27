@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/drawer_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -26,7 +28,8 @@ class _BannersScreenState extends State<BannersScreen> {
     }
   }
 
-  void _removeBanner(int index) {
+  final box = GetStorage();
+  void _removeBanner(String banner) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -56,14 +59,19 @@ class _BannersScreenState extends State<BannersScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (mounted) {
-                setState(() {
-                  _banners.removeAt(index);
+                await FirebaseFirestore.instance
+                    .collection('Merchants')
+                    .doc(box.read('merchant')['id'])
+                    .update({
+                  'banners': FieldValue.arrayRemove([banner])
                 });
+
+                setState(() {});
               }
               Navigator.pop(context);
-              _showSnackBar('Banner removed successfully!', bayanihanBlue);
+              _showSnackBar('Banner removed successfully!', Colors.red);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: bayanihanBlue,
@@ -213,145 +221,191 @@ class _BannersScreenState extends State<BannersScreen> {
         ],
       ),
       backgroundColor: backgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Add Banner Button
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextWidget(
-                      text: 'Add New Banner',
-                      fontSize: 16,
-                      fontFamily: 'Bold',
-                      color: bayanihanBlue,
-                      isBold: true,
+      body: FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('Merchants')
+              .where('merchantId',
+                  isEqualTo: box.read('merchant')['merchantId'])
+              .get(),
+          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: bayanihanBlue,
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: TextWidget(
+                  text: 'Error: ${snapshot.error}',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.red[600],
+                ),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: TextWidget(
+                  text: 'Loading...',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.grey[600],
+                ),
+              );
+            }
+
+            final merchant = snapshot.data!.docs
+                .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id; // Include document ID
+                  return data;
+                })
+                .toList()
+                .first;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Add Banner Button
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextWidget(
+                            text: 'Add New Banner',
+                            fontSize: 16,
+                            fontFamily: 'Bold',
+                            color: bayanihanBlue,
+                            isBold: true,
+                          ),
+                          ElevatedButton(
+                            onPressed: _addBanner,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: bayanihanBlue,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                            ),
+                            child: TextWidget(
+                              text: 'Upload Image',
+                              fontSize: 14,
+                              fontFamily: 'Medium',
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    ElevatedButton(
-                      onPressed: _addBanner,
+                  ),
+                  const SizedBox(height: 16),
+                  // Banners Grid
+                  TextWidget(
+                    text: 'Current Banners',
+                    fontSize: 16,
+                    fontFamily: 'Bold',
+                    color: Colors.black,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: merchant['banners'].isEmpty
+                        ? Center(
+                            child: TextWidget(
+                              text: 'No banners uploaded',
+                              fontSize: 16,
+                              fontFamily: 'Regular',
+                              color: Colors.grey[600],
+                            ),
+                          )
+                        : GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 1,
+                            ),
+                            itemCount: merchant['banners'].length,
+                            itemBuilder: (context, index) {
+                              return Stack(
+                                children: [
+                                  Card(
+                                    elevation: 3,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    color: Colors.white,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        merchant['banners'][index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: GestureDetector(
+                                      onTap: () => _removeBanner(
+                                          merchant['banners'][index]),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red[600],
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          FontAwesomeIcons.trash,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Save Changes Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _banners.isEmpty ? null : _saveChanges,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: bayanihanBlue,
+                        backgroundColor:
+                            _banners.isEmpty ? Colors.grey[800] : bayanihanBlue,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 2,
+                        shadowColor: bayanihanBlue.withOpacity(0.3),
                       ),
                       child: TextWidget(
-                        text: 'Upload Image',
-                        fontSize: 14,
-                        fontFamily: 'Medium',
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Banners Grid
-            TextWidget(
-              text: 'Current Banners',
-              fontSize: 16,
-              fontFamily: 'Bold',
-              color: Colors.black,
-              isBold: true,
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _banners.isEmpty
-                  ? Center(
-                      child: TextWidget(
-                        text: 'No banners uploaded',
+                        text: 'Save Changes',
                         fontSize: 16,
-                        fontFamily: 'Regular',
-                        color: Colors.grey[600],
+                        fontFamily: 'Bold',
+                        color: Colors.white,
+                        isBold: true,
                       ),
-                    )
-                  : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 1,
-                      ),
-                      itemCount: _banners.length,
-                      itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            Card(
-                              elevation: 3,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              color: Colors.white,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  _banners[index],
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: () => _removeBanner(index),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red[600],
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    FontAwesomeIcons.trash,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
                     ),
-            ),
-            const SizedBox(height: 20),
-            // Save Changes Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _banners.isEmpty ? null : _saveChanges,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _banners.isEmpty ? Colors.grey[800] : bayanihanBlue,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  elevation: 2,
-                  shadowColor: bayanihanBlue.withOpacity(0.3),
-                ),
-                child: TextWidget(
-                  text: 'Save Changes',
-                  fontSize: 16,
-                  fontFamily: 'Bold',
-                  color: Colors.white,
-                  isBold: true,
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
+            );
+          }),
     );
   }
 }

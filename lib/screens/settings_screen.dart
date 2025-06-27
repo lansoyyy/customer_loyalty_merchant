@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/drawer_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -23,8 +26,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       TextEditingController(text: 'contact@kafficafe.com');
   final TextEditingController _contactController =
       TextEditingController(text: '+639639520422');
-  final TextEditingController _descriptionController =
-      TextEditingController(text: 'Your friendly coffee shop');
+
+  String logo = '';
+
   final TextEditingController _longDescriptionController = TextEditingController(
       text:
           'Kaffi Cafe offers a cozy ambiance with premium coffee and pastries, dedicated to customer satisfaction.');
@@ -37,7 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _pinController.dispose();
     _emailController.dispose();
     _contactController.dispose();
-    _descriptionController.dispose();
+
     _longDescriptionController.dispose();
     super.dispose();
   }
@@ -80,10 +84,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showSnackBar('Please enter a valid contact number', Colors.red[600]!);
       return;
     }
-    if (_descriptionController.text.isEmpty) {
-      _showSnackBar('Please enter a description', Colors.red[600]!);
-      return;
-    }
 
     // Show confirmation dialog
     showDialog(
@@ -115,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
               // Save settings (placeholder action)
               print('Percentage: $percentageText%');
@@ -124,9 +124,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'PIN: ${_pinController.text.isEmpty ? "No change" : _pinController.text}');
               print('Email: ${_emailController.text}');
               print('Contact: ${_contactController.text}');
-              print('Description: ${_descriptionController.text}');
+
               print('Long Description: ${_longDescriptionController.text}');
               print('Logo: ${_logoImage?.path ?? "No logo selected"}');
+
+              await FirebaseFirestore.instance
+                  .collection('Merchants')
+                  .doc(box.read('merchant')['id'])
+                  .update({
+                'percentageConverstion': double.parse(percentageText),
+                'logo': logo,
+                'name': _nameController.text,
+                'pin': _pinController.text,
+                'description': _longDescriptionController.text,
+                'email': _emailController.text,
+                'number': _contactController.text,
+              });
               _showSnackBar('Settings saved successfully!', bayanihanBlue);
             },
             style: ElevatedButton.styleFrom(
@@ -161,6 +174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  final box = GetStorage();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,35 +236,216 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
       backgroundColor: backgroundColor,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Configure % per Transaction
-            TextWidget(
-              text: 'Points Percentage per Transaction',
-              fontSize: 16,
-              fontFamily: 'Bold',
-              color: Colors.black,
-              isBold: true,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
+      body: FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('Merchants')
+              .where('merchantId',
+                  isEqualTo: box.read('merchant')['merchantId'])
+              .get(),
+          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: bayanihanBlue,
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: TextWidget(
+                  text: 'Error: ${snapshot.error}',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.red[600],
+                ),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: TextWidget(
+                  text: 'Loading...',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.grey[600],
+                ),
+              );
+            }
+
+            final merchant = snapshot.data!.docs
+                .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id; // Include document ID
+                  return data;
+                })
+                .toList()
+                .first;
+
+            _percentageController.text =
+                merchant['percentageConverstion'].toString();
+            _nameController.text = merchant['name'].toString();
+            _pinController.text = merchant['pin'].toString();
+            _emailController.text = merchant['email'].toString();
+            _contactController.text = merchant['number'].toString();
+
+            _longDescriptionController.text =
+                merchant['description'].toString();
+
+            logo = merchant['logo'].toString();
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Configure % per Transaction
+                  TextWidget(
+                    text: 'Points Percentage per Transaction',
+                    fontSize: 16,
+                    fontFamily: 'Bold',
+                    color: Colors.black,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _percentageController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Enter percentage (e.g., 5.0)',
+                                hintStyle: TextStyle(
+                                  fontSize: 14,
+                                  fontFamily: 'Regular',
+                                  color: Colors.grey[600],
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: bayanihanBlue.withOpacity(0.3)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: bayanihanBlue.withOpacity(0.3)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: bayanihanBlue, width: 2),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                fillColor: Colors.white,
+                                filled: true,
+                              ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'Regular',
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextWidget(
+                            text: '%',
+                            fontSize: 16,
+                            fontFamily: 'Medium',
+                            color: bayanihanBlue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Update Logo
+                  TextWidget(
+                    text: 'Update Logo',
+                    fontSize: 16,
+                    fontFamily: 'Bold',
+                    color: Colors.black,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: bayanihanBlue.withOpacity(0.3)),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  logo,
+                                  fit: BoxFit.fitHeight,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _pickLogoImage,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: bayanihanBlue,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: TextWidget(
+                                text: 'Select Logo',
+                                fontSize: 14,
+                                fontFamily: 'Medium',
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Update Name
+                  TextWidget(
+                    text: 'Update Name',
+                    fontSize: 16,
+                    fontFamily: 'Bold',
+                    color: Colors.black,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
                       child: TextField(
-                        controller: _percentageController,
-                        keyboardType: TextInputType.number,
+                        controller: _nameController,
                         decoration: InputDecoration(
-                          hintText: 'Enter percentage (e.g., 5.0)',
+                          hintText: 'Enter business name',
                           hintStyle: TextStyle(
                             fontSize: 14,
                             fontFamily: 'Regular',
@@ -271,6 +466,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             borderSide:
                                 BorderSide(color: bayanihanBlue, width: 2),
                           ),
+                          prefixIcon: Icon(Icons.business,
+                              color: bayanihanBlue, size: 20),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           fillColor: Colors.white,
@@ -283,401 +480,234 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    TextWidget(
-                      text: '%',
-                      fontSize: 16,
-                      fontFamily: 'Medium',
-                      color: bayanihanBlue,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Update Logo
-            TextWidget(
-              text: 'Update Logo',
-              fontSize: 16,
-              fontFamily: 'Bold',
-              color: Colors.black,
-              isBold: true,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(10),
-                        border:
-                            Border.all(color: bayanihanBlue.withOpacity(0.3)),
+                  ),
+                  const SizedBox(height: 16),
+                  // Change PIN
+                  TextWidget(
+                    text: 'Change PIN',
+                    fontSize: 16,
+                    fontFamily: 'Bold',
+                    color: Colors.black,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: TextField(
+                        controller: _pinController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        maxLength: 6,
+                        decoration: InputDecoration(
+                          hintText: 'Enter 6-digit PIN',
+                          hintStyle: TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Regular',
+                            color: Colors.grey[600],
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                color: bayanihanBlue.withOpacity(0.3)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                color: bayanihanBlue.withOpacity(0.3)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(color: bayanihanBlue, width: 2),
+                          ),
+                          prefixIcon:
+                              Icon(Icons.lock, color: bayanihanBlue, size: 20),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          fillColor: Colors.white,
+                          filled: true,
+                          counterText: '',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Regular',
+                          color: Colors.black87,
+                        ),
                       ),
-                      child: _logoImage == null
-                          ? Center(
-                              child: Icon(
-                                FontAwesomeIcons.image,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Edit Details
+                  TextWidget(
+                    text: 'Edit Details',
+                    fontSize: 16,
+                    fontFamily: 'Bold',
+                    color: Colors.black,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _longDescriptionController,
+                            maxLines: 5,
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Enter long description (e.g., business details)',
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'Regular',
                                 color: Colors.grey[600],
-                                size: 40,
                               ),
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.file(
-                                _logoImage!,
-                                fit: BoxFit.cover,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: bayanihanBlue.withOpacity(0.3)),
                               ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: bayanihanBlue.withOpacity(0.3)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    BorderSide(color: bayanihanBlue, width: 2),
+                              ),
+                              prefixIcon: Icon(Icons.notes,
+                                  color: bayanihanBlue, size: 20),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              fillColor: Colors.white,
+                              filled: true,
                             ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _pickLogoImage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: bayanihanBlue,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: TextWidget(
-                          text: 'Select Logo',
-                          fontSize: 14,
-                          fontFamily: 'Medium',
-                          color: Colors.white,
-                        ),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontFamily: 'Regular',
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              hintText: 'Enter email address',
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'Regular',
+                                color: Colors.grey[600],
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: bayanihanBlue.withOpacity(0.3)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: bayanihanBlue.withOpacity(0.3)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    BorderSide(color: bayanihanBlue, width: 2),
+                              ),
+                              prefixIcon: Icon(Icons.email,
+                                  color: bayanihanBlue, size: 20),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              fillColor: Colors.white,
+                              filled: true,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontFamily: 'Regular',
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _contactController,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              hintText: 'Enter contact number',
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'Regular',
+                                color: Colors.grey[600],
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: bayanihanBlue.withOpacity(0.3)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: bayanihanBlue.withOpacity(0.3)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    BorderSide(color: bayanihanBlue, width: 2),
+                              ),
+                              prefixIcon: Icon(Icons.phone,
+                                  color: bayanihanBlue, size: 20),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              fillColor: Colors.white,
+                              filled: true,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontFamily: 'Regular',
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Update Name
-            TextWidget(
-              text: 'Update Name',
-              fontSize: 16,
-              fontFamily: 'Bold',
-              color: Colors.black,
-              isBold: true,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter business name',
-                    hintStyle: TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'Regular',
-                      color: Colors.grey[600],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: bayanihanBlue, width: 2),
-                    ),
-                    prefixIcon:
-                        Icon(Icons.business, color: bayanihanBlue, size: 20),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    fillColor: Colors.white,
-                    filled: true,
                   ),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontFamily: 'Regular',
-                    color: Colors.black87,
+                  const SizedBox(height: 20),
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _handleSave,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: bayanihanBlue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 2,
+                        shadowColor: bayanihanBlue.withOpacity(0.3),
+                      ),
+                      child: TextWidget(
+                        text: 'Save Settings',
+                        fontSize: 16,
+                        fontFamily: 'Bold',
+                        color: Colors.white,
+                        isBold: true,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            // Change PIN
-            TextWidget(
-              text: 'Change PIN',
-              fontSize: 16,
-              fontFamily: 'Bold',
-              color: Colors.black,
-              isBold: true,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  controller: _pinController,
-                  keyboardType: TextInputType.number,
-                  obscureText: true,
-                  maxLength: 6,
-                  decoration: InputDecoration(
-                    hintText: 'Enter 6-digit PIN',
-                    hintStyle: TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'Regular',
-                      color: Colors.grey[600],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: bayanihanBlue, width: 2),
-                    ),
-                    prefixIcon:
-                        Icon(Icons.lock, color: bayanihanBlue, size: 20),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    fillColor: Colors.white,
-                    filled: true,
-                    counterText: '',
-                  ),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontFamily: 'Regular',
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Edit Details
-            TextWidget(
-              text: 'Edit Details',
-              fontSize: 16,
-              fontFamily: 'Bold',
-              color: Colors.black,
-              isBold: true,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter short description (e.g., tagline)',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'Regular',
-                          color: Colors.grey[600],
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue, width: 2),
-                        ),
-                        prefixIcon: Icon(Icons.description,
-                            color: bayanihanBlue, size: 20),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Regular',
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _longDescriptionController,
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                        hintText:
-                            'Enter long description (e.g., business details)',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'Regular',
-                          color: Colors.grey[600],
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue, width: 2),
-                        ),
-                        prefixIcon:
-                            Icon(Icons.notes, color: bayanihanBlue, size: 20),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Regular',
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        hintText: 'Enter email address',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'Regular',
-                          color: Colors.grey[600],
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue, width: 2),
-                        ),
-                        prefixIcon:
-                            Icon(Icons.email, color: bayanihanBlue, size: 20),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Regular',
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _contactController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        hintText: 'Enter contact number',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'Regular',
-                          color: Colors.grey[600],
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue, width: 2),
-                        ),
-                        prefixIcon:
-                            Icon(Icons.phone, color: bayanihanBlue, size: 20),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Regular',
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: bayanihanBlue,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  elevation: 2,
-                  shadowColor: bayanihanBlue.withOpacity(0.3),
-                ),
-                child: TextWidget(
-                  text: 'Save Settings',
-                  fontSize: 16,
-                  fontFamily: 'Bold',
-                  color: Colors.white,
-                  isBold: true,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+            );
+          }),
     );
   }
 }

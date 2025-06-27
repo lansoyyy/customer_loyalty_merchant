@@ -1,10 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer_loyalty/screens/home_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
 import 'package:customer_loyalty/widgets/button_widget.dart';
+import 'package:customer_loyalty/widgets/show.snackbar_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:customer_loyalty/widgets/textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class MerchantLoginScreen extends StatefulWidget {
   const MerchantLoginScreen({super.key});
@@ -15,6 +18,8 @@ class MerchantLoginScreen extends StatefulWidget {
 
 class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
   final _merchantIdController = TextEditingController();
+
+  final box = GetStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -75,9 +80,26 @@ class _MerchantLoginScreenState extends State<MerchantLoginScreen> {
                             color: Colors.white,
                             textColor: bayanihanBlue,
                             label: 'Login',
-                            onPressed: () {
-                              Get.off(HomeScreen(),
-                                  transition: Transition.zoom);
+                            onPressed: () async {
+                              FirebaseFirestore.instance
+                                  .collection('Merchants')
+                                  .where('merchantId',
+                                      isEqualTo: _merchantIdController.text)
+                                  .get()
+                                  .then((QuerySnapshot querySnapshot) {
+                                if (querySnapshot.docs.isNotEmpty) {
+                                  print(querySnapshot.docs.first.data());
+                                  box.write('merchant',
+                                      querySnapshot.docs.first.data());
+                                  Get.off(HomeScreen(),
+                                      transition: Transition.zoom);
+                                } else {
+                                  showSnackBar(
+                                      context,
+                                      'Merchant ID does not exist!',
+                                      Colors.red);
+                                }
+                              });
                             },
                           ),
                         ),

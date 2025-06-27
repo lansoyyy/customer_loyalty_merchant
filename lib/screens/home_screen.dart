@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer_loyalty/screens/history_screen.dart';
 import 'package:customer_loyalty/screens/load.user_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
@@ -12,10 +13,11 @@ import 'package:customer_loyalty/widgets/touchable_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:quickalert/quickalert.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
 
   // Constants for reusable values
 
@@ -27,6 +29,8 @@ class HomeScreen extends StatelessWidget {
   static const _sectionSpacing = 15.0;
   static const _cardRadius = 16.0;
 
+  final box = GetStorage();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,51 +38,93 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: _buildFloatingActionButton(context),
       appBar: _buildAppBar(),
       backgroundColor: backgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              _buildTotalLoadCard(),
-              const SizedBox(height: _sectionSpacing),
-              _buildTopUpButton(context),
-              const SizedBox(height: _sectionSpacing),
-              _buildLoadUserButton(context),
-              const SizedBox(height: _sectionSpacing),
-              _buildAnalyticsSection(context),
-              const SizedBox(height: _sectionSpacing),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextWidget(
-                    text: 'Transactions ',
-                    fontSize: 20,
-                    color: Colors.black,
-                    fontFamily: 'Bold',
-                    isBold: true,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Get.to(HistoryScreen(), transition: Transition.zoom);
-                    },
-                    child: TextWidget(
-                      text: 'See All',
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontFamily: 'Bold',
-                      isBold: true,
+      body: FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('Merchants')
+              .where('merchantId',
+                  isEqualTo: box.read('merchant')['merchantId'])
+              .get(),
+          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: bayanihanBlue,
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: TextWidget(
+                  text: 'Error: ${snapshot.error}',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.red[600],
+                ),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: TextWidget(
+                  text: 'Loading...',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.grey[600],
+                ),
+              );
+            }
+
+            final merchant = snapshot.data!.docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              data['id'] = doc.id; // Include document ID
+              return data;
+            }).toList();
+            return Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    _buildTotalLoadCard(merchant.first),
+                    const SizedBox(height: _sectionSpacing),
+                    _buildTopUpButton(context),
+                    const SizedBox(height: _sectionSpacing),
+                    _buildLoadUserButton(context),
+                    const SizedBox(height: _sectionSpacing),
+                    _buildAnalyticsSection(context),
+                    const SizedBox(height: _sectionSpacing),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextWidget(
+                          text: 'Transactions ',
+                          fontSize: 20,
+                          color: Colors.black,
+                          fontFamily: 'Bold',
+                          isBold: true,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Get.to(HistoryScreen(),
+                                transition: Transition.zoom);
+                          },
+                          child: TextWidget(
+                            text: 'See All',
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontFamily: 'Bold',
+                            isBold: true,
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
+                    const SizedBox(height: 5),
+                    _buildTransactionSection(),
+                  ],
+                ),
               ),
-              const SizedBox(height: 5),
-              _buildTransactionSection(),
-            ],
-          ),
-        ),
-      ),
+            );
+          }),
     );
   }
 
@@ -221,7 +267,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalLoadCard() {
+  Widget _buildTotalLoadCard(data) {
     return Container(
       width: double.infinity,
       padding: _cardPadding,
@@ -247,20 +293,19 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextWidget(
-                text: 'Total Load',
+                text: 'Total Points',
                 fontSize: 18,
                 color: Colors.white,
                 fontFamily: 'Medium',
               ),
-              CircleAvatar(
-                minRadius: 18,
-                maxRadius: 18,
-                backgroundColor: Colors.white.withOpacity(0.9),
+              Image.network(
+                data['logo'],
+                height: 50,
               ),
             ],
           ),
           TextWidget(
-            text: '10,681',
+            text: '${data['points'].toString()} pts',
             fontSize: 48,
             color: Colors.white,
             fontFamily: 'Bold',
@@ -269,7 +314,7 @@ class HomeScreen extends StatelessWidget {
           Align(
             alignment: Alignment.bottomRight,
             child: TextWidget(
-              text: 'Jollibee Food Corp',
+              text: data['name'],
               fontSize: 14,
               color: Colors.white70,
               fontFamily: 'Medium',
@@ -286,7 +331,7 @@ class HomeScreen extends StatelessWidget {
       color: Colors.white,
       textColor: bayanihanBlue,
       width: double.infinity,
-      label: 'Reload',
+      label: 'Load Points',
       onPressed: () {
         Get.to(PinLockScreen(), transition: Transition.zoom)!.whenComplete(
           () async {
@@ -338,14 +383,14 @@ class HomeScreen extends StatelessWidget {
             _buildAnalyticsCard(
               context,
               icon: FontAwesomeIcons.ticket,
-              title: 'Points Redeemed',
+              title: 'Points Loaded',
               value: '25,430',
               gradientColors: [Colors.red[600]!, Colors.red[400]!],
             ),
             _buildAnalyticsCard(
               context,
               icon: FontAwesomeIcons.gift,
-              title: 'Points\nGiven',
+              title: 'Rewards\nGiven',
               value: '32,150',
               gradientColors: [Colors.green[600]!, Colors.green[400]!],
             ),
