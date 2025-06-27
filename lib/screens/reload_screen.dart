@@ -43,6 +43,21 @@ class _ReloadScreenState extends State<ReloadScreen> {
       );
       return;
     }
+    if (double.parse(amountText) > 1000) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: TextWidget(
+            text:
+                'Cannot procceed! Reloading is limited to 1,000 points per transaction.',
+            fontSize: 14,
+            fontFamily: 'Regular',
+            color: Colors.white,
+          ),
+          backgroundColor: Colors.red[600],
+        ),
+      );
+      return;
+    }
 
     // Show confirmation dialog
     showDialog(
