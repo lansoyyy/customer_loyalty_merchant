@@ -44,6 +44,10 @@ dependencies:
   quickalert:
   image_picker: ^1.1.2
   url_launcher: ^6.3.1
+  firebase_core:
+  firebase_database:
+  cloud_firestore:
+  firebase_storage:
 
 
 dev_dependencies:
