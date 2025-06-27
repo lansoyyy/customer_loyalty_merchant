@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer_loyalty/utils/colors.dart';
+import 'package:customer_loyalty/utils/const.dart';
 import 'package:customer_loyalty/widgets/drawer_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -17,33 +20,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   DateTimeRange? _selectedDateRange;
 
-  final List<Map<String, dynamic>> _transactions = [
-    {
-      'id': '#235532235532',
-      'date': '2024-10-20',
-      'points': 120.22,
-      'type': 'Earned',
-      'items': 'Espresso x2',
-      'cashier': 'John',
-    },
-    {
-      'id': '#235532235533',
-      'date': '2024-10-20',
-      'points': 60.75,
-      'type': 'Earned',
-      'items': 'Latte x1',
-      'cashier': 'Jane',
-    },
-    {
-      'id': '#235532235534',
-      'date': '2024-10-20',
-      'points': -680.0,
-      'type': 'Redeemed',
-      'items': 'Free Cappuccino',
-      'cashier': 'Alex',
-    },
-  ];
-
+  final box = GetStorage();
   @override
   void dispose() {
     _searchController.dispose();
@@ -53,8 +30,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _selectDateRange(BuildContext context) async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2025),
+      firstDate: DateTime(DateTime.now().year),
+      lastDate: DateTime(2050),
       initialDateRange: _selectedDateRange,
       builder: (context, child) {
         return Theme(
@@ -105,55 +82,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       fontFamily: 'Bold',
                       color: Colors.black,
                       isBold: true,
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search by Transaction ID',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'Regular',
-                          color: Colors.grey[600],
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue.withOpacity(0.3)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: bayanihanBlue, width: 2),
-                        ),
-                        prefixIcon:
-                            Icon(Icons.search, color: bayanihanBlue, size: 20),
-                        suffixIcon: IconButton(
-                          icon:
-                              Icon(Icons.clear, color: bayanihanBlue, size: 20),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Regular',
-                        color: Colors.black87,
-                      ),
-                      onChanged: (value) {
-                        setState(() {});
-                      },
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -220,87 +148,177 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
           // Summary
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Card(
-              elevation: 4,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextWidget(
-                          text: 'Earned',
-                          fontSize: 14,
-                          fontFamily: 'Medium',
-                          color: Colors.grey[800],
-                        ),
-                        TextWidget(
-                          text: '+180.97 pts',
-                          fontSize: 16,
-                          fontFamily: 'Bold',
-                          color: Colors.green[600],
-                          isBold: true,
-                        ),
-                      ],
+          FutureBuilder<QuerySnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('History')
+                  .where('merchantId',
+                      isEqualTo: box.read('merchant')['merchantId'])
+                  .get(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: bayanihanBlue,
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextWidget(
-                          text: 'Redeemed',
-                          fontSize: 14,
-                          fontFamily: 'Medium',
-                          color: Colors.grey[800],
-                        ),
-                        TextWidget(
-                          text: '-680.00 pts',
-                          fontSize: 16,
-                          fontFamily: 'Bold',
-                          color: Colors.red[600],
-                          isBold: true,
-                        ),
-                      ],
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: TextWidget(
+                      text: 'Error: ${snapshot.error}',
+                      fontSize: 16,
+                      fontFamily: 'Regular',
+                      color: Colors.red[600],
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  );
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: TextWidget(
+                      text: 'Loading...',
+                      fontSize: 16,
+                      fontFamily: 'Regular',
+                      color: Colors.grey[600],
+                    ),
+                  );
+                }
+
+                final merchant = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id; // Include document ID
+                  return data;
+                }).toList();
+
+                double earned = 0;
+                double redeemed = 0;
+
+                for (int i = 0; i < merchant.length; i++) {
+                  if (merchant[i]['type'] == 'Earned') {
+                    earned += merchant[i]['points'];
+                  } else {
+                    redeemed += merchant[i]['points'];
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Card(
+                    elevation: 4,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextWidget(
+                                text: 'Total Earned',
+                                fontSize: 14,
+                                fontFamily: 'Medium',
+                                color: Colors.grey[800],
+                              ),
+                              TextWidget(
+                                text: '+ ${formatNumber(earned)} pts',
+                                fontSize: 16,
+                                fontFamily: 'Bold',
+                                color: Colors.green[600],
+                                isBold: true,
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              TextWidget(
+                                text: 'Total Redeemed',
+                                fontSize: 14,
+                                fontFamily: 'Medium',
+                                color: Colors.grey[800],
+                              ),
+                              TextWidget(
+                                text: '- ${formatNumber(redeemed)} pts',
+                                fontSize: 16,
+                                fontFamily: 'Bold',
+                                color: Colors.red[600],
+                                isBold: true,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
           // Transactions
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ListView.builder(
-                itemCount: _transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = _transactions[index];
-                  final transactionDate = DateTime.parse(transaction['date']);
-                  if (_searchController.text.isNotEmpty &&
-                      !transaction['id']
-                          .toString()
-                          .toLowerCase()
-                          .contains(_searchController.text.toLowerCase())) {
-                    return const SizedBox.shrink();
-                  }
-                  if (_filterType != 'All' &&
-                      transaction['type'] != _filterType) {
-                    return const SizedBox.shrink();
-                  }
-                  if (_selectedDateRange != null &&
-                      (transactionDate.isBefore(_selectedDateRange!.start) ||
-                          transactionDate.isAfter(_selectedDateRange!.end))) {
-                    return const SizedBox.shrink();
-                  }
-                  return _buildTransactionItem(transaction);
-                },
-              ),
+              child: FutureBuilder<QuerySnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('History')
+                      .where('merchantId',
+                          isEqualTo: box.read('merchant')['merchantId'])
+                      .get(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: bayanihanBlue,
+                        ),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: TextWidget(
+                          text: 'Error: ${snapshot.error}',
+                          fontSize: 16,
+                          fontFamily: 'Regular',
+                          color: Colors.red[600],
+                        ),
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Center(
+                        child: TextWidget(
+                          text: 'Loading...',
+                          fontSize: 16,
+                          fontFamily: 'Regular',
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    }
+
+                    final merchant = snapshot.data!.docs.map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      data['id'] = doc.id; // Include document ID
+                      return data;
+                    }).toList();
+                    return ListView.builder(
+                      itemCount: merchant.length,
+                      itemBuilder: (context, index) {
+                        final transaction = merchant[index];
+
+                        if (_filterType != 'All' &&
+                            transaction['type'] != _filterType) {
+                          return const SizedBox.shrink();
+                        }
+                        if (_selectedDateRange != null &&
+                            (transaction['dateTime']
+                                    .toDate()
+                                    .isBefore(_selectedDateRange!.start) ||
+                                transaction['dateTime']
+                                    .toDate()
+                                    .isAfter(_selectedDateRange!.end))) {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildTransactionItem(transaction);
+                      },
+                    );
+                  }),
             ),
           ),
         ],
@@ -344,27 +362,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextWidget(
-                      text: transaction['id'],
+                      text: transaction['userId'],
                       fontSize: 16,
                       fontFamily: 'Bold',
                       color: Colors.black87,
                       isBold: true,
                     ),
                     TextWidget(
-                      text: DateFormat('MMM d, yyyy, h:mm a')
-                          .format(DateTime.parse(transaction['date'])),
-                      fontSize: 12,
-                      fontFamily: 'Regular',
-                      color: Colors.grey[600],
-                    ),
-                    TextWidget(
-                      text: 'Items: ${transaction['items']}',
-                      fontSize: 12,
-                      fontFamily: 'Regular',
-                      color: Colors.grey[600],
-                    ),
-                    TextWidget(
-                      text: 'Cashier: ${transaction['cashier']}',
+                      text: transaction['dateFormatted'],
                       fontSize: 12,
                       fontFamily: 'Regular',
                       color: Colors.grey[600],
@@ -373,9 +378,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               TextWidget(
-                text: transaction['points'] > 0
-                    ? '+${transaction['points']} pts'
-                    : '${transaction['points']} pts',
+                text:
+                    '${transaction['type'] == 'Earned' ? '+' : '-'} ${formatNumber(transaction['points'])} pts',
                 fontSize: 16,
                 fontFamily: 'Bold',
                 color: color,

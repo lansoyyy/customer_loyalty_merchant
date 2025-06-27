@@ -4,6 +4,7 @@ import 'package:customer_loyalty/screens/load.user_screen.dart';
 import 'package:customer_loyalty/screens/pin.lock_screen.dart';
 import 'package:customer_loyalty/screens/reload_screen.dart';
 import 'package:customer_loyalty/utils/colors.dart';
+import 'package:customer_loyalty/utils/const.dart';
 import 'package:customer_loyalty/widgets/amount.purchase_dialog.dart';
 import 'package:customer_loyalty/widgets/button_widget.dart';
 import 'package:customer_loyalty/widgets/divider_widget.dart';
@@ -298,14 +299,24 @@ class HomeScreen extends StatelessWidget {
                 color: Colors.white,
                 fontFamily: 'Medium',
               ),
-              Image.network(
-                data['logo'],
+              Container(
+                width: 50,
                 height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.network(
+                    data['logo'],
+                  ),
+                ),
               ),
             ],
           ),
           TextWidget(
-            text: '${data['points'].toString()} pts',
+            text: '${formatNumber(data['points'])} pts',
             fontSize: 48,
             color: Colors.white,
             fontFamily: 'Bold',
@@ -380,20 +391,118 @@ class HomeScreen extends StatelessWidget {
               value: '1,245',
               gradientColors: [Colors.blue[700]!, Colors.blue[400]!],
             ),
-            _buildAnalyticsCard(
-              context,
-              icon: FontAwesomeIcons.ticket,
-              title: 'Points Loaded',
-              value: '25,430',
-              gradientColors: [Colors.red[600]!, Colors.red[400]!],
-            ),
-            _buildAnalyticsCard(
-              context,
-              icon: FontAwesomeIcons.gift,
-              title: 'Rewards\nGiven',
-              value: '32,150',
-              gradientColors: [Colors.green[600]!, Colors.green[400]!],
-            ),
+            FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('History')
+                    .where('merchantId',
+                        isEqualTo: box.read('merchant')['merchantId'])
+                    .get(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: bayanihanBlue,
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: TextWidget(
+                        text: 'Error: ${snapshot.error}',
+                        fontSize: 16,
+                        fontFamily: 'Regular',
+                        color: Colors.red[600],
+                      ),
+                    );
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: TextWidget(
+                        text: 'Loading...',
+                        fontSize: 16,
+                        fontFamily: 'Regular',
+                        color: Colors.grey[600],
+                      ),
+                    );
+                  }
+
+                  final merchant = snapshot.data!.docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    data['id'] = doc.id; // Include document ID
+                    return data;
+                  }).toList();
+
+                  double earned = 0;
+
+                  for (int i = 0; i < merchant.length; i++) {
+                    if (merchant[i]['type'] == 'Earned') {
+                      earned += merchant[i]['points'];
+                    }
+                  }
+                  return _buildAnalyticsCard(
+                    context,
+                    icon: FontAwesomeIcons.ticket,
+                    title: 'Points Loaded',
+                    value: formatNumber(earned),
+                    gradientColors: [Colors.green[600]!, Colors.green[400]!],
+                  );
+                }),
+            FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('History')
+                    .where('merchantId',
+                        isEqualTo: box.read('merchant')['merchantId'])
+                    .get(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: bayanihanBlue,
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: TextWidget(
+                        text: 'Error: ${snapshot.error}',
+                        fontSize: 16,
+                        fontFamily: 'Regular',
+                        color: Colors.red[600],
+                      ),
+                    );
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: TextWidget(
+                        text: 'Loading...',
+                        fontSize: 16,
+                        fontFamily: 'Regular',
+                        color: Colors.grey[600],
+                      ),
+                    );
+                  }
+
+                  final merchant = snapshot.data!.docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    data['id'] = doc.id; // Include document ID
+                    return data;
+                  }).toList();
+
+                  double redeemed = 0;
+
+                  for (int i = 0; i < merchant.length; i++) {
+                    if (merchant[i]['type'] == 'Redeemed') {
+                      redeemed += merchant[i]['points'];
+                    }
+                  }
+                  return _buildAnalyticsCard(
+                    context,
+                    icon: FontAwesomeIcons.gift,
+                    title: 'Points\nGiven',
+                    value: formatNumber(redeemed),
+                    gradientColors: [Colors.red[600]!, Colors.red[400]!],
+                  );
+                }),
           ],
         ),
       ],
@@ -464,26 +573,62 @@ class HomeScreen extends StatelessWidget {
   Widget _buildTransactionSection() {
     return SizedBox(
       height: 300,
-      child: ListView(
-        children: [
-          _buildTransactionItem(
-            '# 235 532 235 532',
-            'Oct 20, 10:00 am',
-            '+120.22 pts',
-          ),
-          _buildTransactionItem(
-              '# 235 532 235 532', 'Oct 20, 10:05 am', '+60.75 pts'),
-          _buildTransactionItem(
-            '# 235 532 235 532',
-            'Oct 20, 10:10 am',
-            '-680 pts',
-          ),
-        ],
-      ),
+      child: FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('History')
+              .where('merchantId',
+                  isEqualTo: box.read('merchant')['merchantId'])
+              .get(),
+          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: bayanihanBlue,
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: TextWidget(
+                  text: 'Error: ${snapshot.error}',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.red[600],
+                ),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: TextWidget(
+                  text: 'Loading...',
+                  fontSize: 16,
+                  fontFamily: 'Regular',
+                  color: Colors.grey[600],
+                ),
+              );
+            }
+
+            final merchant = snapshot.data!.docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              data['id'] = doc.id; // Include document ID
+              return data;
+            }).toList();
+            return ListView(
+              children: [
+                for (int i = 0; i < merchant.length; i++)
+                  _buildTransactionItem(
+                      '# ${merchant[i]['userId']}',
+                      '${merchant[i]['dateFormatted']}',
+                      '${merchant[i]['points']}',
+                      merchant[i]['type']),
+              ],
+            );
+          }),
     );
   }
 
-  Widget _buildTransactionItem(String title, String date, String amount) {
+  Widget _buildTransactionItem(
+      String title, String date, String amount, String type) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -499,8 +644,10 @@ class HomeScreen extends StatelessWidget {
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
-                FontAwesomeIcons.gift,
+              child: Icon(
+                type == 'Earned'
+                    ? FontAwesomeIcons.ticket
+                    : FontAwesomeIcons.gift,
                 color: Colors.white,
                 size: 20,
               ),
@@ -526,7 +673,8 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             TextWidget(
-              text: amount,
+              text:
+                  '${type == 'Earned' ? '+' : '-'} ${formatNumber(int.parse(amount))} pts',
               fontSize: 16,
               color: Colors.white,
               fontFamily: 'Bold',

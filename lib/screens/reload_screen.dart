@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:customer_loyalty/services/add_history.dart';
 import 'package:customer_loyalty/utils/colors.dart';
+import 'package:customer_loyalty/utils/const.dart';
 import 'package:customer_loyalty/widgets/drawer_widget.dart';
 import 'package:customer_loyalty/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
@@ -94,6 +96,9 @@ class _ReloadScreenState extends State<ReloadScreen> {
                   .update({
                 'points': FieldValue.increment(double.parse(amountText))
               });
+
+              addHistory(box.read('merchant')['merchantId'],
+                  double.parse(amountText).toInt(), 'Earned', 'Admin');
 
               setState(() {
                 _amountController.clear();
@@ -199,13 +204,13 @@ class _ReloadScreenState extends State<ReloadScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               TextWidget(
-                                text: 'Current Balance',
+                                text: 'Current Points Balance',
                                 fontSize: 16,
                                 fontFamily: 'Medium',
                                 color: Colors.grey[800],
                               ),
                               TextWidget(
-                                text: '${merchant['points']} pts',
+                                text: '${formatNumber(merchant['points'])} pts',
                                 fontSize: 24,
                                 fontFamily: 'Bold',
                                 color: bayanihanBlue,
