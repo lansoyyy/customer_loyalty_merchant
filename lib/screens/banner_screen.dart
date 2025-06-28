@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 
 class BannersScreen extends StatefulWidget {
@@ -16,19 +17,48 @@ class BannersScreen extends StatefulWidget {
 }
 
 class _BannersScreenState extends State<BannersScreen> {
-  final List<File> _banners = []; // List to store banner images
   final ImagePicker _picker = ImagePicker();
+  final box = GetStorage();
 
   Future<void> _addBanner() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null && mounted) {
-      setState(() {
-        _banners.add(File(pickedFile.path));
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+      if (pickedFile == null || !mounted) {
+        _showSnackBar('No image selected.', Colors.red[600]!);
+        return;
+      }
+
+      // Get merchant ID
+      final merchantId = box.read('merchant')['merchantId'];
+      // Create a unique file name using timestamp
+      final fileName =
+          'banners/$merchantId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final file = File(pickedFile.path);
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref().child(fileName);
+      final uploadTask = await storageRef.putFile(file);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+      // Update Firestore with the download URL
+      await FirebaseFirestore.instance
+          .collection('Merchants')
+          .doc(box.read('merchant')['id'])
+          .update({
+        'banners': FieldValue.arrayUnion([downloadUrl])
       });
+
+      if (mounted) {
+        setState(() {});
+        _showSnackBar('Banner uploaded successfully!', bayanihanBlue);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error uploading banner: $e', Colors.red[600]!);
+      }
     }
   }
 
-  final box = GetStorage();
   void _removeBanner(String banner) {
     showDialog(
       context: context,
@@ -71,62 +101,7 @@ class _BannersScreenState extends State<BannersScreen> {
                 setState(() {});
               }
               Navigator.pop(context);
-              _showSnackBar('Banner removed successfully!', Colors.red);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: bayanihanBlue,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            child: TextWidget(
-              text: 'Confirm',
-              fontSize: 14,
-              fontFamily: 'Medium',
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _saveChanges() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: Colors.white,
-        title: TextWidget(
-          text: 'Confirm Changes',
-          fontSize: 18,
-          fontFamily: 'Bold',
-          color: bayanihanBlue,
-          isBold: true,
-        ),
-        content: TextWidget(
-          text: 'Are you sure you want to save banner changes?',
-          fontSize: 16,
-          fontFamily: 'Regular',
-          color: Colors.black87,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: TextWidget(
-              text: 'Cancel',
-              fontSize: 14,
-              fontFamily: 'Medium',
-              color: Colors.grey[600],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Placeholder for saving banners (e.g., upload to server)
-              print(
-                  'Banners saved: ${_banners.map((file) => file.path).toList()}');
-              _showSnackBar('Banners saved successfully!', bayanihanBlue);
+              _showSnackBar('Banner removed successfully!', Colors.red[600]!);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: bayanihanBlue,
@@ -214,9 +189,7 @@ class _BannersScreenState extends State<BannersScreen> {
                 ),
               );
             },
-            icon: Icon(
-              Icons.info_outline,
-            ),
+            icon: const Icon(Icons.info_outline),
           ),
         ],
       ),
@@ -317,91 +290,65 @@ class _BannersScreenState extends State<BannersScreen> {
                     isBold: true,
                   ),
                   const SizedBox(height: 8),
-                  Expanded(
-                    child: merchant['banners'].isEmpty
-                        ? Center(
-                            child: TextWidget(
-                              text: 'No banners uploaded',
-                              fontSize: 16,
-                              fontFamily: 'Regular',
-                              color: Colors.grey[600],
-                            ),
-                          )
-                        : GridView.builder(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 1,
-                            ),
+                  merchant['banners'].isEmpty
+                      ? Center(
+                          child: TextWidget(
+                            text: 'No banners uploaded',
+                            fontSize: 16,
+                            fontFamily: 'Regular',
+                            color: Colors.grey[600],
+                          ),
+                        )
+                      : Expanded(
+                          child: ListView.builder(
                             itemCount: merchant['banners'].length,
                             itemBuilder: (context, index) {
-                              return Stack(
-                                children: [
-                                  Card(
-                                    elevation: 3,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
                                     color: Colors.white,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        merchant['banners'][index],
-                                        fit: BoxFit.cover,
+                                    image: DecorationImage(
+                                        image: NetworkImage(
+                                          merchant['banners'][index],
+                                        ),
+                                        fit: BoxFit.cover),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Align(
+                                      alignment: Alignment.topRight,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          _removeBanner(
+                                              merchant['banners'][index]);
+                                        },
+                                        icon: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: const Icon(
+                                              FontAwesomeIcons.trash,
+                                              color: Colors.white,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: GestureDetector(
-                                      onTap: () => _removeBanner(
-                                          merchant['banners'][index]),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red[600],
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          FontAwesomeIcons.trash,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               );
                             },
                           ),
-                  ),
+                        ),
                   const SizedBox(height: 20),
-                  // Save Changes Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _banners.isEmpty ? null : _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _banners.isEmpty ? Colors.grey[800] : bayanihanBlue,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        elevation: 2,
-                        shadowColor: bayanihanBlue.withOpacity(0.3),
-                      ),
-                      child: TextWidget(
-                        text: 'Save Changes',
-                        fontSize: 16,
-                        fontFamily: 'Bold',
-                        color: Colors.white,
-                        isBold: true,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             );
