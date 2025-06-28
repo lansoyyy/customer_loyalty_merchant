@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    name: 'customer-loyalty-5e404',
+    name: 'aquarius-866e2',
     options: DefaultFirebaseOptions.currentPlatform,
   );
 

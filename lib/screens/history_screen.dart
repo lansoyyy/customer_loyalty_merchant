@@ -172,16 +172,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   );
                 }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: TextWidget(
-                      text: 'Loading...',
-                      fontSize: 16,
-                      fontFamily: 'Regular',
-                      color: Colors.grey[600],
-                    ),
-                  );
-                }
+                // if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                //   return Center(
+                //     child: TextWidget(
+                //       text: 'Loading...',
+                //       fontSize: 16,
+                //       fontFamily: 'Regular',
+                //       color: Colors.grey[600],
+                //     ),
+                //   );
+                // }
 
                 final merchant = snapshot.data!.docs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
@@ -278,16 +278,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           fontSize: 16,
                           fontFamily: 'Regular',
                           color: Colors.red[600],
-                        ),
-                      );
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(
-                        child: TextWidget(
-                          text: 'Loading...',
-                          fontSize: 16,
-                          fontFamily: 'Regular',
-                          color: Colors.grey[600],
                         ),
                       );
                     }

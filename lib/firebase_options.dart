@@ -53,10 +53,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-      apiKey: "AIzaSyAar9-gdPgpDaWPLZSitLs765A_iP3TDPA",
-      authDomain: "customer-loyalty-5e404.firebaseapp.com",
-      projectId: "customer-loyalty-5e404",
-      storageBucket: "customer-loyalty-5e404.firebasestorage.app",
-      messagingSenderId: "202395478431",
-      appId: "1:202395478431:web:458943e39723f34cddb5aa");
+      apiKey: "AIzaSyD7UDX_sEZg2OdLTg1bhPyWIJysKq7xd0g",
+      authDomain: "aquarius-866e2.firebaseapp.com",
+      databaseURL: "https://aquarius-866e2-default-rtdb.firebaseio.com",
+      projectId: "aquarius-866e2",
+      storageBucket: "aquarius-866e2.appspot.com",
+      messagingSenderId: "352392858889",
+      appId: "1:352392858889:web:c878bd3e3f5187d3e857d8");
 }

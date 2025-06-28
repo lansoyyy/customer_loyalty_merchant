@@ -388,7 +388,7 @@ class HomeScreen extends StatelessWidget {
               context,
               icon: FontAwesomeIcons.users,
               title: 'Total Customers',
-              value: '1,245',
+              value: '0',
               gradientColors: [Colors.blue[700]!, Colors.blue[400]!],
             ),
             FutureBuilder<QuerySnapshot>(
@@ -415,16 +415,6 @@ class HomeScreen extends StatelessWidget {
                       ),
                     );
                   }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
-                      child: TextWidget(
-                        text: 'Loading...',
-                        fontSize: 16,
-                        fontFamily: 'Regular',
-                        color: Colors.grey[600],
-                      ),
-                    );
-                  }
 
                   final merchant = snapshot.data!.docs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
@@ -435,8 +425,10 @@ class HomeScreen extends StatelessWidget {
                   double earned = 0;
 
                   for (int i = 0; i < merchant.length; i++) {
-                    if (merchant[i]['type'] == 'Earned') {
-                      earned += merchant[i]['points'];
+                    if (merchant.isNotEmpty) {
+                      if (merchant[i]['type'] == 'Earned') {
+                        earned += merchant[i]['points'];
+                      }
                     }
                   }
                   return _buildAnalyticsCard(
@@ -471,19 +463,10 @@ class HomeScreen extends StatelessWidget {
                       ),
                     );
                   }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
-                      child: TextWidget(
-                        text: 'Loading...',
-                        fontSize: 16,
-                        fontFamily: 'Regular',
-                        color: Colors.grey[600],
-                      ),
-                    );
-                  }
 
                   final merchant = snapshot.data!.docs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
+
                     data['id'] = doc.id; // Include document ID
                     return data;
                   }).toList();
@@ -491,8 +474,10 @@ class HomeScreen extends StatelessWidget {
                   double redeemed = 0;
 
                   for (int i = 0; i < merchant.length; i++) {
-                    if (merchant[i]['type'] == 'Redeemed') {
-                      redeemed += merchant[i]['points'];
+                    if (merchant.isNotEmpty) {
+                      if (merchant[i]['type'] == 'Redeemed') {
+                        redeemed += merchant[i]['points'];
+                      }
                     }
                   }
                   return _buildAnalyticsCard(
@@ -600,7 +585,7 @@ class HomeScreen extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return Center(
                 child: TextWidget(
-                  text: 'Loading...',
+                  text: 'No transactions yet',
                   fontSize: 16,
                   fontFamily: 'Regular',
                   color: Colors.grey[600],
